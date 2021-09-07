@@ -24,7 +24,6 @@ class nd_line():
         i=0
         d=0
         while d<dist:
-            #can def make this more efficient with np.cumsum
             i+=1
             d+=distance.euclidean(self.points[i-1],self.points[i])
         last_point_dist = distance.euclidean(self.points[i-1],self.points[i])
