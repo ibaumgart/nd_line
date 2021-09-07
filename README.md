@@ -8,15 +8,15 @@ ln = nd_line(points) (where points is an array like with rows = points and colum
 
 methods:
 
--ln.interp(dist) returns a point dist length along the arc of the line
+- ln.interp(dist) returns a point dist length along the arc of the line
 
--ln.splineify(samples) generates a new line from a spline approximation, occurs in place, use samples to specify how many points will be sampled from the splines to generate the new line
+- ln.splineify(samples) generates a new line from a spline approximation, occurs in place, use samples to specify how many points will be sampled from the splines to generate the new line
 
 attributes:
 
--ln.points: the points of the line
--ln.length: the length of the line
--ln.type: linear if not spline approximated, spline otherwise
+- ln.points: the points of the line
+- ln.length: the length of the line
+- ln.type: linear if not spline approximated, spline otherwise
 
 
 ### Notes
