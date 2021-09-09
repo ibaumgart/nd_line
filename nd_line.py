@@ -13,11 +13,11 @@ from scipy.interpolate import splev, splprep
 class nd_line():
     def __init__(self,points,inplace = False):
         self.points = np.array([tuple(x) for x in points])
-        self.length = self._length(points)
+        self.length = self._length(self.points)
         self.type = 'linear'
     def _length(self,points):
         'calculate the length (sum of the euclidean distance between points)'
-        return  sum([distance.euclidean(points[i],points[i+1]) for i in range(len(points)-1)])
+        return  sum([self.e_dist(points[i],points[i+1]) for i in range(len(points)-1)])
     def interp(self,dist):
         'return a point a specified distance along the line'
         if dist>self._length(self.points): sys.exit('length cannot be greater than line length')
@@ -25,8 +25,8 @@ class nd_line():
         d=0
         while d<dist:
             i+=1
-            d+=distance.euclidean(self.points[i-1],self.points[i])
-        last_point_dist = distance.euclidean(self.points[i-1],self.points[i])
+            d+=self.e_dist(self.points[i-1],self.points[i])
+        last_point_dist = self.e_dist(self.points[i-1],self.points[i])
         d-=last_point_dist
         vector = (self.points[i]-self.points[i-1])/last_point_dist
         remdist = dist-d
@@ -42,3 +42,5 @@ class nd_line():
         self.points = np.transpose(splev(np.linspace(0,1,num=samples),tck))
         self.length = self._length(self.points)
         self.type = 'spline'
+    def e_dist(self,a,b):
+        return np.sqrt(np.sum((a - b) ** 2, axis=0))
