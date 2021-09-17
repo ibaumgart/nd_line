@@ -10,6 +10,8 @@ methods:
 
 - ln.interp(dist) returns a point dist length along the arc of the line
 
+- ln.interp_rat(ratio) ratio should be a value between 0 and 1, returns a value ratio*length along the line
+
 - ln.splineify(samples) generates a new line from a spline approximation, occurs in place, use samples to specify how many points will be sampled from the splines to generate the new line
 
 attributes:

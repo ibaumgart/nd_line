@@ -35,6 +35,8 @@ class nd_line():
         check[i] = final_point
         if abs(self._length(check)/dist-1)>.001: sys.exit('Something is wrong')
         return(final_point)
+    def interp_rat(self,ratio):
+        return self.interp(ratio*self.length)
     def splineify(self,samples = None):
         'Turn line into a spline approximation, currently occurs in place'
         if samples is None: samples = len(self.points)
