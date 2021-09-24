@@ -9,6 +9,7 @@ import numpy as np
 from scipy.spatial import distance
 import sys
 from scipy.interpolate import splev, splprep
+import matplotlib.pyplot as plt
 
 class nd_line():
     def __init__(self,points,inplace = False):
@@ -21,6 +22,7 @@ class nd_line():
     def interp(self,dist):
         'return a point a specified distance along the line'
         if dist>self._length(self.points): sys.exit('length cannot be greater than line length')
+        if dist==0: return self.points[0]
         i=0
         d=0
         while d<dist:
@@ -37,12 +39,19 @@ class nd_line():
         return(final_point)
     def interp_rat(self,ratio):
         return self.interp(ratio*self.length)
-    def splineify(self,samples = None):
+    def splineify(self,samples = None,s=0):
         'Turn line into a spline approximation, currently occurs in place'
         if samples is None: samples = len(self.points)
-        tck,u = splprep([self.points[:,0],self.points[:,1]])
+        tck,u = splprep([self.points[:,i] for i in range(self.points.shape[1])],s=s)
         self.points = np.transpose(splev(np.linspace(0,1,num=samples),tck))
         self.length = self._length(self.points)
         self.type = 'spline'
+    def plot2d(self):
+        fig = plt.figure()
+        plt.scatter(self.points[:,0],self.points[:,1])
+    def plot3d(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        ax.scatter(self.points[:,0],self.points[:,1],self.points[:,2])
     def e_dist(self,a,b):
         return np.sqrt(np.sum((a - b) ** 2, axis=0))
