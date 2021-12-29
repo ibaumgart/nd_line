@@ -39,7 +39,7 @@ setup(
     name='nd_line',
     version=find_version("nd_line", "__init__.py"),
     description='no description available',
-    long_description=read('README.rst'),
+    long_description=read('README.md'),
     classifiers=[
         ],
     author='dmarshall-bing',
@@ -55,7 +55,7 @@ setup(
         'pep8>=1.5.7',
         'pyflakes>=0.8.1',
         'numpy',
-        'scipy'
-        'matplotlib''
+        'scipy',
+        'matplotlib'
         ]
 )
