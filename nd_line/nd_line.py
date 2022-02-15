@@ -14,8 +14,13 @@ import matplotlib.pyplot as plt
 class nd_line():
     def __init__(self,points,inplace = False):
         self.points = np.array([tuple(x) for x in points])
-        self.length = self._length(self.points)
+        alldist = self._lengths(self.points)
+        self.length = sum(alldist)
+        self.cumul = np.cumsum([0] + alldist)
         self.type = 'linear'
+    def _lengths(self,points):
+        'calculate the length (sum of the euclidean distance between points)'
+        return  [self.e_dist(points[i],points[i+1]) for i in range(len(points)-1)]
     def _length(self,points):
         'calculate the length (sum of the euclidean distance between points)'
         return  sum([self.e_dist(points[i],points[i+1]) for i in range(len(points)-1)])
@@ -23,19 +28,12 @@ class nd_line():
         'return a point a specified distance along the line'
         if dist>self.length: sys.exit('length cannot be greater than line length')
         if dist==0: return self.points[0]
-        i=0
-        d=0
-        while d<dist:
-            i+=1
-            d+=self.e_dist(self.points[i-1],self.points[i])
-        last_point_dist = self.e_dist(self.points[i-1],self.points[i])
-        d-=last_point_dist
-        vector = (self.points[i]-self.points[i-1])/last_point_dist
+        if dist==self.length: return self.points[-1]
+        index = np.where(self.cumul<dist)[0][-1]
+        d=self.cumul[index]
+        vector = (self.points[index+1]-self.points[index])/self.e_dist(self.points[index],self.points[index+1])
         remdist = dist-d
-        final_point = remdist*vector+self.points[i-1]
-        check = self.points.copy()[0:i+1]
-        check[i] = final_point
-        if abs(self._length(check)/dist-1)>.001: sys.exit('Something is wrong')
+        final_point = remdist*vector+self.points[index]
         return(final_point)
     def interp_rat(self,ratio):
         return self.interp(ratio*self.length)
