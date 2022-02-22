@@ -26,7 +26,8 @@ class nd_line():
         return  sum([self.e_dist(points[i],points[i+1]) for i in range(len(points)-1)])
     def interp(self,dist):
         'return a point a specified distance along the line'
-        if dist>self.length: sys.exit('length cannot be greater than line length')
+        assert dist<=self.length, 'length cannot be greater than line length'
+        assert dist>=0, 'length cannot be less than zero'
         if dist==0: return self.points[0]
         if dist==self.length: return self.points[-1]
         index = np.where(self.cumul<dist)[0][-1]
@@ -36,6 +37,7 @@ class nd_line():
         final_point = remdist*vector+self.points[index]
         return(final_point)
     def interp_rat(self,ratio):
+        assert ratio<=1,"Ratio for interp_rat() must be a value from 0 to 1"
         return self.interp(ratio*self.length)
     def splineify(self,samples = None,s=0):
         'Turn line into a spline approximation, currently occurs in place'
