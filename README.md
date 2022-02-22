@@ -23,4 +23,4 @@ attributes:
 
 ### Notes
 
-Currently the interp method is not particularly efficient, and requires each point to be sampled individually, in the future I plan to address both of these limitations
+Currently points must be sampled one at a time, future version will allow interpolation of a list of distances along the line
