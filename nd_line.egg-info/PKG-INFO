@@ -35,4 +35,3 @@ attributes:
 ### Notes
 
 Currently the interp method is not particularly efficient, and requires each point to be sampled individually, in the future I plan to address both of these limitations
-
