@@ -1,14 +1,17 @@
 """Module for creating an n-dimensional line."""
+from typing import List
 
 import numpy as np
 from matplotlib import pyplot as plt
+from numpy import ndarray
+from numpy.typing import ArrayLike
 from scipy.interpolate import splev, splprep
 
 
 class nd_line:
     """Class for n-dimensional line."""
 
-    def __init__(self, points):
+    def __init__(self, points: ArrayLike):
         """Create a line from a list of points.
 
         :param points: list of points
@@ -19,7 +22,7 @@ class nd_line:
         self.cumul = np.cumsum([0] + alldist)
         self.type = 'linear'
 
-    def _lengths(self, points):
+    def _lengths(self, points: ndarray) -> List[float]:
         """Calculate the length (sum of the euclidean distance between points).
 
         :param points: numpy array of points
@@ -27,7 +30,7 @@ class nd_line:
         """
         return [self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)]
 
-    def _length(self, points):
+    def _length(self, points: ndarray) -> float:
         """Calculate the length (sum of the euclidean distance between points).
 
         :param points: numpy array of points
@@ -36,7 +39,7 @@ class nd_line:
         """
         return sum([self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)])
 
-    def interp(self, dist):
+    def interp(self, dist: float) -> ndarray:
         """Return a point a specified distance along the line.
 
         :param dist: distance along the line
@@ -56,7 +59,7 @@ class nd_line:
         final_point = remdist * vector + self.points[index]
         return final_point
 
-    def interp_rat(self, ratio):
+    def interp_rat(self, ratio: float) -> ndarray:
         """Return a point a specified ratio along the line.
 
         :param ratio: ratio along the line
@@ -92,7 +95,7 @@ class nd_line:
         ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2])
 
     @staticmethod
-    def e_dist(a, b):
+    def e_dist(a: ndarray, b: ndarray) -> float:
         """Calculate the euclidean distance between two points.
 
         :param a: numpy array of point a
