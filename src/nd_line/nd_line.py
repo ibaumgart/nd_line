@@ -7,7 +7,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import float64, ndarray
+from numpy import ndarray
 from numpy.typing import ArrayLike
 from scipy.interpolate import splev, splprep
 
@@ -23,11 +23,11 @@ class nd_line:
         self.cumul = np.cumsum([0] + alldist)
         self.type = 'linear'
 
-    def _lengths(self, points: ndarray) -> List[float64]:
+    def _lengths(self, points: ndarray) -> List[float]:
         """Calculate the length (sum of the euclidean distance between points)."""
         return [self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)]
 
-    def _length(self, points: ndarray) -> float64:
+    def _length(self, points: ndarray) -> float:
         """Calculate the length (sum of the euclidean distance between points).
 
         :param points: numpy array of points
@@ -93,7 +93,7 @@ class nd_line:
         ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2])
 
     @staticmethod
-    def e_dist(a: ndarray, b: ndarray) -> float64:
+    def e_dist(a: ndarray, b: ndarray) -> float:
         """Calculate the euclidean distance between two points.
 
         :param a: numpy array of point a

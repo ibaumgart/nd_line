@@ -1,14 +1,6 @@
 [flake8]
-#first row of ignore is to make black happy
-ignore = E203, W503,
-    #SIM105 has a problem with except Exception
-    SIM105
-per-file-ignores =
-    # imported but unused and star imports
-    __init__.py: F401, F403
-    enums.py: D
+ignore = E203, W503, # make black happy
 docstring-style: SPHINX
 max-line-length = 120
 max-complexity = 18
-#note T4 is for mypy, so does nothing now
-select = B,C,E,F,W,T4,SIM,RST,D,T1,FS,DAR
+select = B,C,E,F,W,T4,SIM,RST,D,T1,FS,DAR,ANN
