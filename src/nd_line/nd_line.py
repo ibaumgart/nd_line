@@ -19,7 +19,7 @@ class nd_line:
         self.points = np.array([tuple(x) for x in points])
         alldist = self._lengths(self.points)
         self.length = sum(alldist)
-        self.cumul: ndarray = np.cumsum([0] + alldist)
+        self.cumul: ndarray = np.cumsum([0.0] + alldist)
         self.type = 'linear'
 
     def _lengths(self, points: ndarray) -> List[float]:
