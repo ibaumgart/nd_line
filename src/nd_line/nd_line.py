@@ -1,21 +1,14 @@
-"""Created on Tue Sep  7 14:07:13 2021.
+"""Module for creating an n-dimensional line."""
 
-@author: dpm42
-"""
-
-from typing import List
-
-import matplotlib.pyplot as plt
 import numpy as np
-from numpy import ndarray
-from numpy.typing import ArrayLike
+from matplotlib import pyplot as plt
 from scipy.interpolate import splev, splprep
 
 
 class nd_line:
     """Class for n-dimensional line."""
 
-    def __init__(self, points: ArrayLike) -> None:
+    def __init__(self, points):
         """Create a line from a list of points."""
         self.points = np.array([tuple(x) for x in points])
         alldist = self._lengths(self.points)
@@ -23,11 +16,11 @@ class nd_line:
         self.cumul = np.cumsum([0] + alldist)
         self.type = 'linear'
 
-    def _lengths(self, points: ndarray) -> List[float]:
+    def _lengths(self, points):
         """Calculate the length (sum of the euclidean distance between points)."""
         return [self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)]
 
-    def _length(self, points: ndarray) -> float:
+    def _length(self, points):
         """Calculate the length (sum of the euclidean distance between points).
 
         :param points: numpy array of points
@@ -36,7 +29,7 @@ class nd_line:
         """
         return sum([self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)])
 
-    def interp(self, dist: float) -> ndarray:
+    def interp(self, dist):
         """Return a point a specified distance along the line.
 
         :param dist: distance along the line
@@ -56,11 +49,10 @@ class nd_line:
         final_point = remdist * vector + self.points[index]
         return final_point
 
-    def interp_rat(self, ratio: float):
+    def interp_rat(self, ratio):
         """Return a point a specified ratio along the line.
 
         :param ratio: ratio along the line
-        :type ratio: float
         :return: numpy array of the point coordinates
         """
         assert ratio <= 1, "Ratio for interp_rat() must be a value from 0 to 1"
@@ -93,7 +85,7 @@ class nd_line:
         ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2])
 
     @staticmethod
-    def e_dist(a: ndarray, b: ndarray) -> float:
+    def e_dist(a, b):
         """Calculate the euclidean distance between two points.
 
         :param a: numpy array of point a
