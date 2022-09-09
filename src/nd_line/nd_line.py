@@ -9,7 +9,10 @@ class nd_line:
     """Class for n-dimensional line."""
 
     def __init__(self, points):
-        """Create a line from a list of points."""
+        """Create a line from a list of points.
+
+        :param points: list of points
+        """
         self.points = np.array([tuple(x) for x in points])
         alldist = self._lengths(self.points)
         self.length = sum(alldist)
@@ -17,7 +20,11 @@ class nd_line:
         self.type = 'linear'
 
     def _lengths(self, points):
-        """Calculate the length (sum of the euclidean distance between points)."""
+        """Calculate the length (sum of the euclidean distance between points).
+
+        :param points: numpy array of points
+        :return: length of the line
+        """
         return [self.e_dist(points[i], points[i + 1]) for i in range(len(points) - 1)]
 
     def _length(self, points):
