@@ -1,5 +1,6 @@
 [flake8]
 ignore = E203, W503, # make black happy
+    ANN101 # self type
 docstring-style: SPHINX
 max-line-length = 120
 max-complexity = 18

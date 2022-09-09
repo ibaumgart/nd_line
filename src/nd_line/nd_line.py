@@ -11,7 +11,7 @@ from scipy.interpolate import splev, splprep
 class nd_line:
     """Class for n-dimensional line."""
 
-    def __init__(self, points: ArrayLike):
+    def __init__(self, points: ArrayLike) -> None:
         """Create a line from a list of points.
 
         :param points: list of points
@@ -19,7 +19,7 @@ class nd_line:
         self.points = np.array([tuple(x) for x in points])
         alldist = self._lengths(self.points)
         self.length = sum(alldist)
-        self.cumul = np.cumsum([0] + alldist)
+        self.cumul: ndarray = np.cumsum([0] + alldist)
         self.type = 'linear'
 
     def _lengths(self, points: ndarray) -> List[float]:
@@ -68,7 +68,7 @@ class nd_line:
         assert ratio <= 1, "Ratio for interp_rat() must be a value from 0 to 1"
         return self.interp(ratio * self.length)
 
-    def splineify(self, samples=None, s=0):
+    def splineify(self, samples: int = None, s: float = 0) -> None:
         """Turn line into a spline approximation, currently occurs in place.
 
         :param samples: number of samples to use for spline approximation
@@ -81,13 +81,13 @@ class nd_line:
         self.length = self._length(self.points)
         self.type = 'spline'
 
-    def plot2d(self):
+    def plot2d(self) -> None:
         """Plot the line in 2D."""
         assert self.points.shape[1] == 2, 'Line must be 2D to plot in 2D'
         plt.figure()
         plt.scatter(self.points[:, 0], self.points[:, 1])
 
-    def plot3d(self):
+    def plot3d(self) -> None:
         """Plot the line in 3D."""
         assert self.points.shape[1] == 3, 'Line must be 3D to plot in 3D'
         fig = plt.figure()
