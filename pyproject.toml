@@ -1,6 +1,6 @@
 [project]
 name = "nd_line"
-version = "0.1.2"
+version = "0.2.0"
 authors = [
   { name="Daniel Marshall", email="dpm42@duke.edu" },
 ]
