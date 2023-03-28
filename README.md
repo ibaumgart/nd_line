@@ -1,12 +1,12 @@
 # nd_line
+
 Interpolate points on an n-dimensional line by euclidean arc length.
 
 ### Installation
+
 `pip install nd_line`
 
-### Usage
-
-#### Methods:
+#### Methods
 
 - `ln.interp(dist)`: returns a point dist length along the arc of the line
 
@@ -14,13 +14,14 @@ Interpolate points on an n-dimensional line by euclidean arc length.
 
 - `ln.splineify(samples)`: generates a new line from a spline approximation, occurs in place, use samples to specify how many points will be sampled from the splines to generate the new line
 
-#### Attributes:
+#### Attributes
 
 - `ln.points`: the points of the line
 - `ln.length`: the length of the line
 - `ln.type`: linear if not spline approximated, spline otherwise
 
-#### Example:
+#### Example
+
 ```python
 from nd_line.nd_line import nd_line
 import numpy as np

@@ -1,8 +1,11 @@
-"""Module for creating an n-dimensional line."""
-from typing import List
+"""Module for creating an n-dimensional line.
+
+Copyright Daniel Marshall
+"""
+import math
+from typing import List, Optional
 
 import numpy as np
-from matplotlib import pyplot as plt
 from numpy import ndarray
 from numpy.typing import ArrayLike
 from scipy.interpolate import splev, splprep
@@ -68,7 +71,7 @@ class nd_line:
         assert ratio <= 1, "Ratio for interp_rat() must be a value from 0 to 1"
         return self.interp(ratio * self.length)
 
-    def splineify(self, samples: int = None, s: float = 0) -> None:
+    def splineify(self, samples: Optional[int] = None, s: float = 0) -> None:
         """Turn line into a spline approximation, currently occurs in place.
 
         :param samples: number of samples to use for spline approximation
@@ -76,23 +79,10 @@ class nd_line:
         """
         if samples is None:
             samples = len(self.points)
-        tck, u = splprep([self.points[:, i] for i in range(self.points.shape[1])], s=s)
+        tck, u, _, _, _ = splprep([self.points[:, i] for i in range(self.points.shape[1])], s=s)
         self.points = np.transpose(splev(np.linspace(0, 1, num=samples), tck))
         self.length = self._length(self.points)
         self.type = 'spline'
-
-    def plot2d(self) -> None:
-        """Plot the line in 2D."""
-        assert self.points.shape[1] == 2, 'Line must be 2D to plot in 2D'
-        plt.figure()
-        plt.scatter(self.points[:, 0], self.points[:, 1])
-
-    def plot3d(self) -> None:
-        """Plot the line in 3D."""
-        assert self.points.shape[1] == 3, 'Line must be 3D to plot in 3D'
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        ax.scatter(self.points[:, 0], self.points[:, 1], self.points[:, 2])
 
     @staticmethod
     def e_dist(a: ndarray, b: ndarray) -> float:
@@ -102,4 +92,4 @@ class nd_line:
         :param b: numpy array of point b
         :return: euclidean distance between a and b
         """
-        return np.sqrt(np.sum((a - b) ** 2, axis=0))
+        return math.sqrt(sum((a - b) ** 2))
