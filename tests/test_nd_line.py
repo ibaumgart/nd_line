@@ -1,10 +1,13 @@
 """Tests for the nd_line module."""
 
 import random
+import sys
 
 import numpy as np
 
-from nd_line.nd_line import nd_line
+sys.path.append('.')
+
+from src.nd_line.nd_line import nd_line  # noqa E402
 
 
 class Test2D:
