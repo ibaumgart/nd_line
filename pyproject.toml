@@ -30,14 +30,6 @@ line_length = 120
 line-length = 120
 skip-string-normalization = true
 
-[tool.rstcheck]
-ignore_directives = [
-    "details",
-    "argparse",
-    "changelog",
-    "bibliography",
-]
-
 [tool.flynt]
 line-length = 120
 
