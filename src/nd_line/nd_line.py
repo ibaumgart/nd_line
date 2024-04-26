@@ -72,8 +72,8 @@ class nd_line:
     def dist_from(self, point: ArrayLike) -> ndarray:
         """Calculate the distance between a given point and the points in the nd_line.
 
-        :param point: numpy array of point
-        :return: length of the line
+        :param point: numpy array of a point
+        :return: distance of each nd_line.points from point
         """
         translated_points = self._points - point
         return np.linalg.norm(translated_points, axis=1)
@@ -143,23 +143,23 @@ class nd_line:
         assert 0 <= ratio <= 1, "Ratio for interp_rat() must be a value from 0 to 1"
         return self.interp(ratio * self.length)
 
-    def resample(self, new_lengths: ArrayLike) -> nd_line:
+    def resample(self, new_dists: ArrayLike) -> nd_line:
         """Resample the line from new lengths along the line.
 
-        :param new_lengths: vector of explicit resample lengths
+        :param new_dists: vector of distances along the line at which to resample
         :return: new nd_line from resampled points
         """
-        new_lengths = np.array(new_lengths)
-        assert new_lengths.ndim == 1, "new_lengths must be a 1-D vector of lengths"
-        assert np.all(np.logical_and(0.0 <= new_lengths, new_lengths <= self._length)), (
+        new_dists = np.array(new_dists)
+        assert new_dists.ndim == 1, "new_lengths must be a 1-D vector of lengths"
+        assert np.all(np.logical_and(0.0 <= new_dists, new_dists <= self._length)), (
             "All new_lengths must between " "0 and nd_line length"
         )
         new_points = np.vstack(
-            [np.interp(new_lengths, self._cumul, self._points[:, n]) for n in range(self._points.shape[1])]
+            [np.interp(new_dists, self._cumul, self._points[:, n]) for n in range(self._points.shape[1])]
         ).T
         return nd_line(new_points, name=self.name)
 
-    def splineify(self, samples: t.Optional[int] = None, s: t.Optional[float] = 0, **kwargs) -> nd_spline:
+    def to_spline(self, samples: t.Optional[int] = None, s: t.Optional[float] = 0, **kwargs) -> nd_spline:
         """Turn line into a spline approximation, returns new object.
 
         :param samples: number of samples to use for spline approximation
@@ -197,6 +197,8 @@ class nd_spline(nd_line):
         # protected attributes
         self._u = self._cumul / self._length
         self._s = s
+        # todo: add kwargs as protected attributes
+        self.__dict__.update(kwargs)
 
         #
         if 's' in kwargs.keys():
@@ -209,10 +211,8 @@ class nd_spline(nd_line):
 
     @property
     def tck(self) -> tuple:
-        """(t,c,k) tuple from splprep (https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.
-
-        .splprep.html)
-        """
+        """(t,c,k) tuple from splprep (
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate..splprep.html)"""
         return self._tck
 
     @property
@@ -227,18 +227,18 @@ class nd_spline(nd_line):
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep.html)"""
         return self._s
 
-    def resample(self, new_lengths: ArrayLike) -> nd_spline:
+    def resample(self, new_dists: ArrayLike) -> nd_spline:
         """Resample the spline from new lengths along the line.
 
-        :param new_lengths: vector of explicit resample lengths
+        :param new_dists: vector of explicit resample lengths
         :return: new nd_spline from resampled points
         """
-        new_lengths = np.array(new_lengths)
-        assert new_lengths.ndim == 1, "new_lengths must be a 1-D vector of lengths"
-        assert np.all(np.logical_and(0.0 <= new_lengths, new_lengths <= self._length)), (
+        new_dists = np.array(new_dists)
+        assert new_dists.ndim == 1, "new_lengths must be a 1-D vector of lengths"
+        assert np.all(np.logical_and(0.0 <= new_dists, new_dists <= self._length)), (
             "All new_lengths must between " "0 and nd_line length"
         )
-        new_u = new_lengths / self._length
+        new_u = new_dists / self._length
         new_points = np.array(splev(new_u, self._tck)).T
         return nd_spline(new_points, name=self.name, s=0)
 
