@@ -2,8 +2,9 @@
 
 Copyright Daniel Marshall
 """
+
 import math
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from numpy import ndarray
@@ -25,7 +26,7 @@ class nd_line:
         self.cumul: ndarray = np.cumsum([0.0] + alldist)
         self.type = 'linear'
 
-    def _lengths(self, points: ndarray) -> List[float]:
+    def _lengths(self, points: ndarray) -> list[float]:
         """Calculate the length (sum of the euclidean distance between points).
 
         :param points: numpy array of points
