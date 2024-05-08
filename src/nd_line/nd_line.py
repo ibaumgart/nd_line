@@ -39,13 +39,13 @@ class nd_line:
     def lengths(self) -> ndarray:
         """Euclidean distance between each point along the line.
 
-        Same length as nd_line.points.
+        Returns vector of length nd_line.points - 1.
         """
         return self._lengths
 
     @property
     def length(self) -> float:
-        """Sum Euclidean length between each point along the line.
+        """Sum of the Euclidean distance between each point along the line.
 
         Identical to nd_line.cumul[-1].
         """
@@ -53,7 +53,7 @@ class nd_line:
 
     @property
     def cumul(self) -> ndarray:
-        """Cumulative Euclidean length between each point along the line.
+        """Cumulative Euclidean distance between each point along the line.
 
         Same length as nd_line.points.
         """
@@ -75,7 +75,9 @@ class nd_line:
         :param point: numpy array of a point
         :return: distance of each nd_line.points from point
         """
+        # translate points relative to point of interest
         translated_points = self._points - point
+        # calculate norm from new origin at point (Euclidean distance)
         return np.linalg.norm(translated_points, axis=1)
 
     def closest_idx(self, point: ndarray) -> int:
@@ -105,12 +107,16 @@ class nd_line:
         """
         dists = self.dist_from(point)
         closest_idx = np.argmin(dists)
+        # start at the closest point
         start_idx = closest_idx
         while dists[start_idx] < distance and start_idx > 0:
+            # increment backwards in line until line point is outside boundary
             start_idx -= 1
         end_idx = closest_idx
         while dists[end_idx] < distance and end_idx < self._points.shape[0] - 1:
+            # increment forward in line until line point is outside boundary
             end_idx += 1
+        # return start to end
         within_idx = np.arange(start_idx, end_idx + 1)
         return within_idx
 
@@ -154,6 +160,11 @@ class nd_line:
         assert np.all(np.logical_and(0.0 <= new_dists, new_dists <= self._length)), (
             "All new_lengths must between " "0 and nd_line length"
         )
+        # do linear interpolation of y=f(x) at x' in each dimension (n) where:
+        # x' = new_dists, new distances along the line
+        # x  = self._cumul, distances (cumulative Euclidean length) along existing line definition from self.points
+        # y  = existing dimension n
+        # then concatenate dimensions and make new nd_line
         new_points = np.vstack(
             [np.interp(new_dists, self._cumul, self._points[:, n]) for n in range(self._points.shape[1])]
         ).T
@@ -185,28 +196,29 @@ class nd_line:
 class nd_spline(nd_line):
     """Class for n-dimensional spline."""
 
-    def __init__(self, points: ArrayLike, name: t.Optional[str] = None, s: t.Optional[float] = 0.0, **kwargs) -> None:
+    def __init__(self, points: ArrayLike, name: t.Optional[str] = None, **kwargs) -> None:
         """Create a spline from a list of points.
 
-        :param points: list of points :param name: line name :param s: smoothing factor for spline :param **kwargs:
-        keyword arguments for splprep (https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep
-        .html). kwargs u will be overriden by np.linspace(0,1,len(points)).
+        :param points: list of points
+        :param name: line name
+        :param **kwargs: keyword arguments for splprep
+        (https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep
+        .html). kwargs 'u' will be overriden by the normalized line lengths from 0 to 1.
         """
-        super().__init__(points, name=name)
+        super(nd_spline, self).__init__(points, name=name)
         self.type = 'spline'
         # protected attributes
+        # Create u, parameter from 0 (line startpoint) to 1 (line endpoint)
         self._u = self._cumul / self._length
-        self._s = s
+        # Add kwargs to the class definition for reproducability
         # todo: add kwargs as protected attributes
         self.__dict__.update(kwargs)
 
-        #
-        if 's' in kwargs.keys():
-            del kwargs['s']
+        # u is overridden if passed in kwargs
         if 'u' in kwargs.keys():
             del kwargs['u']
 
-        tck, _ = splprep(self._points.T, u=self._u, s=s, **kwargs)
+        tck, _ = splprep(self._points.T, u=self._u, **kwargs)
         self._tck = tck
 
     @property
@@ -221,16 +233,14 @@ class nd_spline(nd_line):
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep.html)"""
         return self._u
 
-    @property
-    def s(self) -> float:
-        """smoothing parameter from spline generation (
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.splprep.html)"""
-        return self._s
-
     def resample(self, new_dists: ArrayLike) -> nd_spline:
         """Resample the spline from new lengths along the line.
+        N.B. the returned nd_spline may be dissimilar to the original nd_spline, especially if new_dists is sparse
+        compared to the original nd_spline.cumul.
+        N.B. The overall length of the nd_spline will be different from the original nd_spline because the length is
+        approximated by Euclidean distance between points.
 
-        :param new_dists: vector of explicit resample lengths
+        :param new_dists: vector of distances along the line at which to resample
         :return: new nd_spline from resampled points
         """
         new_dists = np.array(new_dists)
@@ -238,9 +248,52 @@ class nd_spline(nd_line):
         assert np.all(np.logical_and(0.0 <= new_dists, new_dists <= self._length)), (
             "All new_lengths must between " "0 and nd_line length"
         )
+        # Normalize the new distances along the line by the computed length
         new_u = new_dists / self._length
+        # splev returns [[x0...xn],[y0...yn]], so transpose for points [n_points x n_dim]
         new_points = np.array(splev(new_u, self._tck)).T
         return nd_spline(new_points, name=self.name, s=0)
+
+    @staticmethod
+    def recursive_bisection(
+            tck: tuple,
+            u1: float,
+            u3: float,
+            pt1: ndarray,
+            pt3: ndarray,
+            d13: float,
+            r_tol: t.Optional[float] = 0.01
+    ) -> t.List[float]:
+        """Recursively upsample a spline parameterized by u between u1 and u3 until the Euclidean distance between
+        each point represents the spline arc length within tolerance.
+
+        :param tck: (t,c,k) tuple from splprep (
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate..splprep.html)
+        :param u1: parameter at segment start in range [0, 1]
+        :param u3: parameter at segment end in range [0, 1]
+        :param pt1: nd point at segment start
+        :param pt3: nd point at segment end
+        :param d13: distance between pt1 and pt3
+        :param r_tol: relative tolerance at which to stop upsampling the spline between points. Upsampling stops when
+        the proportion of dist(pt1 -> pt2) + dist(pt2 -> pt3) to dist(pt1 -> pt3) is less than r_tol.
+        :return: list of new parameterization values u without the first point u1
+        """
+        # get parameter between the boundary points
+        u2 = (u1 + u3) / 2
+        # evaluate the nd point between the boundaries
+        pt2 = np.array(splev(u2, tck)).T
+        # get distances between boundaries and new point
+        d12 = nd_line.e_dist(pt1, pt2)
+        d23 = nd_line.e_dist(pt2, pt3)
+        # calculate proportion difference between distances pt1->pt3 and pt1->pt2->pt3
+        err = (d12 + d23 - d13) / d13
+        if err > r_tol:
+            # if the new distances are large, bisect each new segment
+            return (nd_spline.recursive_bisection(tck, u1, u2, pt1, pt2, d12, r_tol) +
+                    nd_spline.recursive_bisection(tck, u2, u3, pt2, pt3, d23, r_tol))
+        else:
+            # return only the last point
+            return [u3]
 
     def recursive_upsample(self, tol: t.Optional[float] = 0.01) -> nd_spline:
         """Add a point between existing points until the curve is reasonably represented by nd_line.points.
@@ -250,33 +303,19 @@ class nd_spline(nd_line):
         :return: new nd_spline from resampled points
         """
 
-        def recursive_bisection(u1, u3, pt1, pt3, d13, tck, r_tol):
-            u2 = (u1 + u3) / 2
-            pt2 = np.array(splev(u2, tck)).T
-            d12 = self.e_dist(pt1, pt2)
-            d23 = self.e_dist(pt2, pt3)
-            err = (d12 + d23 - d13) / d13
-            if err > r_tol:
-                return recursive_bisection(u1, u2, pt1, pt2, d12, tck, r_tol) + recursive_bisection(
-                    u2, u3, pt2, pt3, d23, tck, r_tol
-                )
-            else:
-                return [u3]
-
         new_u = [self._u[0]]
         for i in range(0, self._u.shape[0] - 1):
             new_u.extend(
-                recursive_bisection(
-                    self._u[i], self._u[i + 1], self._points[i], self._points[i + 1], self._lengths[i], self._tck, tol
-                )
+                self.recursive_bisection(self._tck, self._u[i], self._u[i + 1], self._points[i], self._points[i + 1],
+                                         self._lengths[i], tol)
             )
 
         return self.resample(np.array(new_u) * self._length)
 
     def interp(self, dist: float) -> ndarray:
-        """Return a point a specified distance along the line.
+        """Return a point a specified distance along the spline.
 
-        :param dist: distance along the line
+        :param dist: distance along the spline
         :type dist: float
         :return: numpy array of the point coordinates
         """
@@ -290,9 +329,9 @@ class nd_spline(nd_line):
         return self.interp_rat(u)
 
     def interp_rat(self, ratio: float) -> ndarray:
-        """Return a point a specified ratio along the line.
+        """Return a point a specified ratio along the spline.
 
-        :param ratio: ratio along the line
+        :param ratio: ratio along the spline
         :return: numpy array of the point coordinates
         """
         assert 0 <= ratio <= 1, "Ratio for interp_rat() must be a value from 0 to 1"
