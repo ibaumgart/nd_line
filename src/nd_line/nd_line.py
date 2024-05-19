@@ -255,7 +255,7 @@ class nd_spline(nd_line):
         return nd_spline(new_points, name=self.name, s=0)
 
     @staticmethod
-    def recursive_bisection(
+    def _recursive_bisection(
             tck: tuple,
             u1: float,
             u3: float,
@@ -288,16 +288,36 @@ class nd_spline(nd_line):
         # calculate proportion difference between distances pt1->pt3 and pt1->pt2->pt3
         err = (d12 + d23 - d13) / d13
         if err > r_tol:
-            # if the new distances are large, bisect each new segment
-            return (nd_spline.recursive_bisection(tck, u1, u2, pt1, pt2, d12, r_tol) +
-                    nd_spline.recursive_bisection(tck, u2, u3, pt2, pt3, d23, r_tol))
+            # if the new distances are large, bisect each new segment and return in a single list
+            return (nd_spline._recursive_bisection(tck, u1, u2, pt1, pt2, d12, r_tol) +
+                    nd_spline._recursive_bisection(tck, u2, u3, pt2, pt3, d23, r_tol))
         else:
             # return only the last point
             return [u3]
 
+    def recursive_resample(self, u1: float, u2: float, tol: t.Optional[float] = 0.01) -> ndarray:
+        """Add samples between parameter u1 and u2 until the curve is reasonably represented by nd_spline.points.
+        This will ensure that nd_spline.lengths are representative of the length along the curve.
+        N.B. No intermediate u values between u1 and u2 from the original nd_spline are ensured to be returned.
+
+        :param u1: starting resample parameter
+        :param u2: ending resample parameter
+        :param tol: incremental relative tolerance at which to stop incrementing upsample.
+        :return: new values u that parameterize the curve u1 to u2
+        """
+        # get start and end points
+        points = np.array(splev([u1, u2], self._tck)).T
+        # compute distance between pt1 and pt2
+        dist = nd_line.e_dist(points[0], points[1])
+        new_u = [u1]
+        new_u.extend(
+            self._recursive_bisection(self._tck, u1, u2, points[0], points[1], dist, tol)
+        )
+
     def recursive_upsample(self, tol: t.Optional[float] = 0.01) -> nd_spline:
         """Add a point between existing points until the curve is reasonably represented by nd_line.points.
-        This will ensure that nd_line.lengths are representative of the length along the curve.
+        This will ensure that nd_line.lengths are representative of the length along the curve and that existing points
+        are preserved.
 
         :param tol: incremental relative tolerance at which to stop incrementing upsample.
         :return: new nd_spline from resampled points
@@ -306,7 +326,7 @@ class nd_spline(nd_line):
         new_u = [self._u[0]]
         for i in range(0, self._u.shape[0] - 1):
             new_u.extend(
-                self.recursive_bisection(self._tck, self._u[i], self._u[i + 1], self._points[i], self._points[i + 1],
+                self.recursive_resample(self._tck, self._u[i], self._u[i + 1], self._points[i], self._points[i + 1],
                                          self._lengths[i], tol)
             )
 
