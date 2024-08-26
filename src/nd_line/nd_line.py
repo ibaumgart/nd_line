@@ -182,6 +182,15 @@ class nd_line:
 
         return nds
 
+    def splinify(self, samples: t.Optional[int] = None, s: t.Optional[float] = 0, **kwargs) -> nd_spline:
+        """Alias of to_spline()
+
+        :param samples: number of samples to use for spline approximation
+        :param s: smoothing factor for spline approximation
+        """
+
+        return self.to_spline(samples, s, **kwargs)
+
     @staticmethod
     def e_dist(a: ndarray, b: ndarray) -> float:
         """Calculate the euclidean distance between two points.
@@ -218,7 +227,7 @@ class nd_spline(nd_line):
         if 'u' in kwargs.keys():
             del kwargs['u']
 
-        tck, _ = splprep(self._points.T, u=self._u, **kwargs)
+        tck, u = splprep(self._points.T, u=self._u, **kwargs)
         self._tck = tck
 
     @property
@@ -246,7 +255,7 @@ class nd_spline(nd_line):
         new_dists = np.array(new_dists)
         assert new_dists.ndim == 1, "new_lengths must be a 1-D vector of lengths"
         assert np.all(np.logical_and(0.0 <= new_dists, new_dists <= self._length)), (
-            "All new_lengths must between " "0 and nd_line length"
+            "All new_lengths must between 0 and nd_line length"
         )
         # Normalize the new distances along the line by the computed length
         new_u = new_dists / self._length
@@ -326,7 +335,7 @@ class nd_spline(nd_line):
         new_u = [self._u[0]]
         for i in range(0, self._u.shape[0] - 1):
             new_u.extend(
-                self.recursive_resample(self._tck, self._u[i], self._u[i + 1], self._points[i], self._points[i + 1],
+                self._recursive_bisection(self._tck, self._u[i], self._u[i + 1], self._points[i], self._points[i + 1],
                                          self._lengths[i], tol)
             )
 

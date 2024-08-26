@@ -185,10 +185,10 @@ class TestSpline2D:
         self.spline = nd_spline(pts)
 
     def test_resample(self):
-        true_u = np.linspace(0, 3 * np.pi / 2, 100)
-        new_u = np.linspace(0, self.spline.length, 100)
-        resamp_spl = self.spline.resample(new_u)
-        truth = np.array([np.cos(true_u) + 2, np.sin(true_u) + 2]).T
+        true_len = np.linspace(0, 3 * np.pi / 2, 100)
+        new_len = np.linspace(0, self.spline.length, 100)
+        resamp_spl = self.spline.resample(new_len)
+        truth = np.array([np.cos(true_len) + 2, np.sin(true_len) + 2]).T
         np.testing.assert_allclose(resamp_spl.points, truth, rtol=1e-3, atol=1e-3)
 
     def test_recursive_upsample(self):
