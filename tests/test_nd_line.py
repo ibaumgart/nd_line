@@ -179,6 +179,7 @@ class TestSpline2D:
 
     def setup_method(self):
         """Set up the 2D spline."""
+        # Make a 3/4 circle
         uu = np.linspace(0, 3 * np.pi / 2, 10)
         pts = np.array([np.cos(uu) + 2, np.sin(uu) + 2])
         pts = np.transpose(pts)
@@ -192,13 +193,23 @@ class TestSpline2D:
         np.testing.assert_allclose(resamp_spl.points, truth, rtol=1e-3, atol=1e-3)
 
     def test_recursive_upsample(self):
-        tol = 0.001
-        init_err = 3 * np.pi / 2 - self.spline.length
+        tol = 1e-4
+        true_len = 3 * np.pi / 2
+        init_err = true_len - self.spline.length
         up_spline = self.spline.recursive_upsample(tol=tol)
-        fin_err = 3 * np.pi / 2 - up_spline.length
+        import matplotlib.pyplot as plt
+        plt.plot()
+        fin_err = true_len - up_spline.length
         err_pct = (init_err - fin_err) / init_err
         assert init_err * tol < err_pct
         print(f"recursive_upsample\n\tinitial error: {init_err}\n\tfinal error: {fin_err}")
+
+    def test_interp(self):
+        up_spline = self.spline.recursive_upsample()
+        np.testing.assert_allclose(up_spline.interp(np.pi / 2), [2, 3], atol=0.001, rtol=0.001)
+
+    def test_interp_rat(self):
+        np.testing.assert_allclose(self.spline.interp_rat(1/3), [2, 3])
 
 
 if __name__ == '__main__':
